@@ -1,0 +1,975 @@
+---
+title: "The Data Diversity Lab"
+format:
+  html:
+    self-contained: true
+    page-layout: custom
+    toc: false
+    theme: none
+    include-in-header:
+      text: |
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,300;1,9..144,600&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+execute:
+  echo: false
+---
+
+```{=html}
+<style>
+/* TOKENS */
+:root {
+  --cream:      #f8f5ef;
+  --cream-dark: #ede8de;
+  --ink:        #1c2b22;
+  --ink-mid:    #3d5044;
+  --ink-light:  #6b836f;
+  --sage:       #7aab85;
+  --sage-light: #a8c9b0;
+  --sage-pale:  #dff0e4;
+  --sage-mist:  #eef7f0;
+  --gold:       #c8a84b;
+  --white:      #ffffff;
+  --border:     #dce8df;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Figtree', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(122,171,133,0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(200,168,75,0.06) 0%, transparent 60%);
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 3rem;
+  background: rgba(248,245,239,0.9);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+}
+.nav-wordmark { display: flex; align-items: baseline; gap: 0.5rem; }
+.nav-lab {
+  font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.02em;
+}
+.nav-uni { font-size: 0.72rem; color: var(--ink-light); letter-spacing: 0.06em; text-transform: uppercase; }
+.nav-tabs { display: flex; align-items: center; gap: 0.15rem; }
+.nav-tab {
+  background: none; border: none; cursor: pointer;
+  font-family: 'Figtree', sans-serif; font-size: 0.75rem; font-weight: 500;
+  color: var(--ink-light); padding: 0.38rem 1rem; border-radius: 30px;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  transition: all 0.22s cubic-bezier(.4,0,.2,1); white-space: nowrap;
+}
+.nav-tab:hover { color: var(--ink); background: var(--sage-pale); }
+.nav-tab.active { color: var(--ink); background: var(--white); box-shadow: 0 1px 6px rgba(28,43,34,0.10); }
+
+/* SECTIONS */
+section {
+  display: none; min-height: 100vh;
+  padding: 76px 3rem 4rem;
+  position: relative; z-index: 1;
+}
+section.active { display: block; animation: sectionIn 0.45s cubic-bezier(.4,0,.2,1) both; }
+@keyframes sectionIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* TYPOGRAPHY */
+.eyebrow {
+  font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--sage); margin-bottom: 0.5rem;
+}
+.display-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 800;
+  line-height: 1.05; color: var(--ink); letter-spacing: -0.03em;
+}
+.display-title em { font-style: italic; color: var(--sage); }
+.section-sub {
+  font-size: 0.9rem; font-weight: 300; color: var(--ink-light);
+  margin-top: 0.6rem; line-height: 1.7; max-width: 560px;
+}
+.section-header { margin-bottom: 2.5rem; }
+
+/* OVERVIEW */
+.overview-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 3rem; }
+.stats-cluster { display: flex; gap: 1rem; align-items: stretch; }
+.stat-block {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px; padding: 1.6rem 1.8rem; flex: 1;
+  position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: statIn 0.6s cubic-bezier(.4,0,.2,1) both;
+}
+.stat-block:nth-child(1){animation-delay:.05s}
+.stat-block:nth-child(2){animation-delay:.12s}
+.stat-block:nth-child(3){animation-delay:.19s}
+@keyframes statIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.stat-block:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(28,43,34,0.09); }
+.stat-block::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sage), var(--sage-light));
+  opacity: 0; transition: opacity 0.2s;
+}
+.stat-block:hover::after { opacity: 1; }
+.stat-n {
+  font-family: 'Fraunces', serif; font-size: 3.5rem; font-weight: 800;
+  color: var(--ink); line-height: 1; letter-spacing: -0.04em;
+}
+.stat-n span { color: var(--sage); }
+.stat-label {
+  font-size: 0.72rem; font-weight: 600; color: var(--ink-light);
+  margin-top: 0.35rem; text-transform: uppercase; letter-spacing: 0.1em;
+}
+.overview-intro {
+  background: var(--ink); border-radius: 20px; padding: 2.5rem;
+  display: flex; flex-direction: column; justify-content: space-between;
+  color: var(--cream); position: relative; overflow: hidden;
+}
+.overview-intro::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(122,171,133,0.2) 0%, transparent 70%);
+}
+.overview-intro-title {
+  font-family: 'Fraunces', serif; font-size: 1.4rem;
+  font-weight: 600; font-style: italic; line-height: 1.3;
+  color: var(--sage-light); margin-bottom: 1rem;
+}
+.overview-intro p { font-size: 0.87rem; font-weight: 300; color: rgba(248,245,239,0.75); line-height: 1.75; }
+.overview-intro-areas { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.5rem; }
+.area-chip {
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 0.3rem 0.7rem; border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.15); color: rgba(248,245,239,0.8);
+}
+
+/* FILTER BAR */
+.filter-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; align-items: center; }
+.filter-chip {
+  font-size: 0.72rem; font-weight: 500; padding: 0.35rem 0.85rem;
+  border-radius: 30px; border: 1.5px solid var(--border); cursor: pointer;
+  background: var(--white); color: var(--ink-light);
+  transition: all 0.18s; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.filter-chip:hover { border-color: var(--sage); color: var(--ink); }
+.filter-chip.active { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+
+/* PEOPLE GRID */
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.2rem;
+}
+.person-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 18px; overflow: hidden; cursor: pointer;
+  transition: transform 0.22s cubic-bezier(.4,0,.2,1), box-shadow 0.22s;
+  animation: cardIn 0.5s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.person-card:hover { transform: translateY(-5px); box-shadow: 0 16px 48px rgba(28,43,34,0.12); }
+.person-card.highlighted { border-color: var(--sage); }
+.person-photo-wrap { width: 100%; aspect-ratio: 1; background: var(--sage-mist); position: relative; overflow: hidden; }
+.person-photo-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.person-card:hover .person-photo-wrap img { transform: scale(1.04); }
+.person-initials-bg {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fraunces', serif; font-size: 2.6rem; font-weight: 600;
+  font-style: italic; color: var(--sage);
+  background: linear-gradient(145deg, var(--sage-mist), var(--cream-dark));
+}
+.area-stripe { height: 4px; }
+.person-body { padding: 1rem 1.1rem 1.2rem; }
+.person-name-card {
+  font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 600;
+  color: var(--ink); line-height: 1.2; margin-bottom: 0.2rem;
+}
+.person-role-card { font-size: 0.71rem; color: var(--ink-light); margin-bottom: 0.6rem; }
+.person-keywords { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.kw-tag {
+  font-size: 0.62rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--ink-light); background: var(--sage-mist);
+  padding: 0.18rem 0.5rem; border-radius: 20px; border: 1px solid var(--sage-pale);
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(28,43,34,0.45); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; padding: 2rem;
+  animation: fadeOverlay 0.2s ease both;
+}
+@keyframes fadeOverlay { from{opacity:0} to{opacity:1} }
+.modal-box {
+  background: var(--white); border-radius: 24px;
+  width: 100%; max-width: 680px; max-height: 85vh; overflow-y: auto;
+  position: relative;
+  animation: modalIn 0.28s cubic-bezier(.4,0,.2,1) both;
+  box-shadow: 0 32px 80px rgba(28,43,34,0.22);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.96) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal-header { display: flex; gap: 1.5rem; padding: 2rem 2rem 1.5rem; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.modal-photo {
+  width: 90px; height: 90px; border-radius: 16px;
+  background: var(--sage-mist); flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-photo img { width: 100%; height: 100%; object-fit: cover; }
+.modal-photo-initials { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; font-style: italic; color: var(--sage); }
+.modal-name { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 700; color: var(--ink); line-height: 1.1; margin-bottom: 0.25rem; }
+.modal-role { font-size: 0.83rem; color: var(--ink-light); margin-bottom: 0.5rem; }
+.modal-area-badge { display: inline-block; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; padding: 0.25rem 0.7rem; border-radius: 20px; color: white; }
+.modal-close {
+  position: absolute; top: 1.2rem; right: 1.2rem;
+  background: var(--sage-mist); border: none; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%; font-size: 1rem;
+  color: var(--ink-light); display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--sage-pale); }
+.modal-body { padding: 1.5rem 2rem 2rem; }
+.modal-section-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--sage); margin-bottom: 0.7rem; margin-top: 1.2rem; }
+.modal-project-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.modal-project-item { background: var(--sage-mist); border-radius: 10px; padding: 0.7rem 1rem; border: 1px solid var(--border); }
+.modal-project-name { font-size: 0.85rem; font-weight: 500; color: var(--ink); }
+.modal-project-desc { font-size: 0.78rem; color: var(--ink-light); margin-top: 0.2rem; line-height: 1.5; }
+.modal-kws { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.modal-kw { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.05em; color: var(--ink-mid); background: var(--cream); border: 1px solid var(--border); padding: 0.25rem 0.65rem; border-radius: 20px; }
+
+/* PROJECTS GRID */
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 1.4rem; }
+.proj-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+  transition: transform 0.22s cubic-bezier(.4,0,.2,1), box-shadow 0.22s;
+  animation: cardIn 0.5s cubic-bezier(.4,0,.2,1) both;
+  display: flex; flex-direction: column;
+}
+.proj-card:hover { transform: translateY(-4px); box-shadow: 0 14px 44px rgba(28,43,34,0.1); }
+.proj-card.highlighted-proj { border-color: var(--gold); }
+.proj-card-accent { height: 5px; }
+.proj-card-body { padding: 1.4rem 1.6rem; flex: 1; display: flex; flex-direction: column; }
+.proj-area-tag { font-size: 0.63rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.22rem 0.65rem; border-radius: 20px; display: inline-block; color: white; margin-bottom: 0.8rem; align-self: flex-start; }
+.proj-name { font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; color: var(--ink); line-height: 1.25; margin-bottom: 0.6rem; }
+.proj-desc { font-size: 0.84rem; color: var(--ink-light); line-height: 1.7; font-weight: 300; flex: 1; }
+.proj-footer { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.proj-kw { font-size: 0.63rem; font-weight: 500; color: var(--ink-light); background: var(--cream); border: 1px solid var(--border); padding: 0.2rem 0.55rem; border-radius: 20px; }
+.proj-members-row { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.proj-member-avatars { display: flex; }
+.proj-member-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--sage-mist); border: 2px solid var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fraunces', serif; font-size: 0.62rem; font-weight: 600;
+  color: var(--sage); overflow: hidden; margin-left: -6px;
+}
+.proj-member-avatar:first-child { margin-left: 0; }
+.proj-member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.proj-member-count { font-size: 0.72rem; color: var(--ink-light); }
+
+/* NETWORK */
+.network-container { position: relative; }
+#network-svg {
+  width: 100%; height: calc(100vh - 230px);
+  background: var(--white); border-radius: 20px;
+  border: 1px solid var(--border); display: block;
+}
+.network-controls { position: absolute; top: 1rem; right: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.net-btn {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.4rem 0.7rem;
+  font-size: 0.72rem; color: var(--ink-light); cursor: pointer;
+  transition: all 0.15s; font-family: 'Figtree', sans-serif;
+}
+.net-btn:hover { background: var(--sage-mist); color: var(--ink); }
+.area-legend { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--ink-light); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* TOOLTIP */
+#tooltip {
+  position: fixed; z-index: 9999;
+  background: var(--ink); color: var(--cream);
+  border-radius: 10px; padding: 0.65rem 0.9rem;
+  font-size: 0.78rem; line-height: 1.5;
+  pointer-events: none; opacity: 0; transition: opacity 0.12s;
+  max-width: 200px; box-shadow: 0 8px 28px rgba(28,43,34,0.25);
+}
+#tooltip.visible { opacity: 1; }
+#tooltip strong { display: block; color: var(--sage-light); margin-bottom: 0.1rem; }
+</style>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-wordmark">
+    <span class="nav-lab">Data Diversity Lab</span>
+    <span class="nav-uni">· University of Arizona</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('overview',this)">Overview</button>
+    <button class="nav-tab"        onclick="showSection('people',this)">People</button>
+    <button class="nav-tab"        onclick="showSection('projects',this)">Projects</button>
+    <button class="nav-tab"        onclick="showSection('network',this)">Network</button>
+  </div>
+</nav>
+
+<div id="tooltip"></div>
+
+<!-- OVERVIEW -->
+<section id="overview" class="active">
+  <div class="section-header">
+    <div class="eyebrow">College of Information Science</div>
+    <div class="display-title">The<br><em>Data Diversity Lab</em></div>
+    <div class="section-sub">We conduct research at the intersection of ecology, evolution, software development, and data science.</div>
+  </div>
+  <div class="overview-hero">
+    <div class="stats-cluster" id="stats-cluster"></div>
+    <div class="overview-intro">
+      <div>
+        <div class="overview-intro-title">"Data science,<br>and intersectionalities"</div>
+        <p>We use data science to examine questions in evolutionary biology, ecology, climate change, and related fields. We invite collaboration with students and researchers passionate about leveraging large datasets to answer questions in biology and beyond.</p>
+      </div>
+      <div class="overview-intro-areas" id="overview-areas"></div>
+    </div>
+  </div>
+</section>
+
+<!-- PEOPLE -->
+<section id="people">
+  <div class="section-header">
+    <div class="eyebrow">The team</div>
+    <div class="display-title">People &amp; <em>Expertise</em></div>
+    <div class="section-sub">Click any lab member to explore their projects and research focus.</div>
+  </div>
+  <div class="filter-bar" id="people-filters"></div>
+  <div class="people-grid"  id="people-grid"></div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-header">
+    <div class="eyebrow">Highlighted Research</div>
+    <div class="display-title">Active <em>Projects</em></div>
+    <div class="section-sub">Research initiativesfrom within the lab.</div>
+  </div>
+  <div class="filter-bar"    id="proj-filters"></div>
+  <div class="projects-grid" id="projects-grid"></div>
+</section>
+
+<!-- NETWORK -->
+<section id="network">
+  <div class="section-header">
+    <div class="eyebrow">Connections</div>
+    <div class="display-title">People × <em>Projects</em></div>
+    <div class="section-sub">Drag nodes to rearrange · Scroll to zoom · Colors represent research area.</div>
+  </div>
+  <div class="network-container">
+    <svg id="network-svg"></svg>
+    <div class="network-controls">
+      <button class="net-btn" onclick="resetZoom()">↺ Reset view</button>
+    </div>
+  </div>
+  <div class="area-legend" id="area-legend"></div>
+</section>
+
+<div id="modal-root"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+    DATA — edit only these two tables.
+
+   PHOTOS
+   ──────
+   Place each photo file in the same folder as this .qmd file, then set
+     photo: "kristen.jpg"
+   Leave photo: "" to show styled initials instead.
+   Supported formats: .jpg  .png  .webp or link
+
+   AREAS
+   ─────
+   Use any string you like — colours are assigned automatically.
+   Examples: "Field X" | "Field Y" | "Field Z"
+   Keep the string identical between MEMBERS and PROJECTS so the
+   network colours and filters line up correctly.
+
+   ALUMNI
+   ──────
+   Set this role to any string containing "Alumni". They are counted
+   separately in the Overview counter.
+
+   ADDING A NEW MEMBER
+   ─────
+   Copy any existing block, paste it at the bottom of the list,
+   change the values, and add the project ids they belong to.
+
+   ADDING A NEW PROJECT
+   ──────
+   Copy any existing project block, give it a unique id (e.g. "p5"),
+   fill in the details, then add that id to the projects: [] array
+   of every MEMBER who works on it.
+═══════════════════════════════════════════════════════════════════════ */
+
+/* ┌─────┐
+   │  MEMBERS TABLE                                                  │
+   │  name | role | photo | projects | keywords | area | highlighted │
+   └─────┘ */
+const MEMBERS = [
+
+  /* FACULTY */
+  
+  /* STUDENTS 
+     Add the photo filename once you have the images.
+     Update projects: [] to reflect which project(s) each student
+     is actually working on.
+  ─*/
+  
+  {
+    name:        "Kennedy Gezella",
+    role:        "Undergraduate student",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/kennedy07.jpg",
+    projects:    ["p5"],
+    keywords:    ["Admin support"],
+    area:        "Admin",
+    highlighted: true
+  },
+  {
+    name:        "Kristen Martinet",
+    role:        "Postdoctoral researcher",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/kristen05.jpg",
+    projects:    ["p1", "p9", "p10"],
+    keywords:    ["Phylogenetics", "Data science"],
+    area:        "Biology",
+    highlighted: true
+  },
+  {
+    name:        "Kiran Basava",
+    role:        "Postdoctoral researcher",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/kiran05hs.jpg",
+    projects:    ["p2", "p9", "p10"],
+    keywords:    ["Culture", "Data science"],
+    area:        "Anthropology",
+    highlighted: true
+  },
+  {
+    name:        "Delaney Scott-Martin",
+    role:        "Undergraduate student",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/delaney04.jpg",
+    projects:    ["p3", "p10"],
+    keywords:    ["Climate change", "Phylogenetics"],
+    area:        "Biology",
+    highlighted: false
+  },
+  {
+    name:        "Michael Nafis",
+    role:        "PhD Student",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/michael00hs.jpg",
+    projects:    ["p4", "p9", "p10"],
+    keywords:    ["Plant sciences", "Genomics"],
+    area:        "Biology",
+    highlighted: false
+  },
+  {
+    name:        "Ian Estacio",
+    role:        "Postdoctoral researcher",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/ian08hs2.jpg",
+    projects:    ["p6", "p10"],
+    keywords:    ["Simulations", "GIS"],
+    area:        "Remote sensing",
+    highlighted: false
+  },
+  {
+    name:        "Danielle Van Boxel",
+    role:        "Alumni",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/danielle-van-boxel.png",
+    projects:    ["p7", "p9"],
+    keywords:    ["Machine learning", "Supervised learning"],
+    area:        "Applied Mathematics",
+    highlighted: false
+  },
+
+];
+
+/* ┌┐
+   │  PROJECTS TABLE                                          │
+   │  id | name | description | keywords | area | highlighted │
+   └┘ */
+const PROJECTS = [
+  {
+    id:          "p1",
+    name:        "SSARP: Species and Speciation Area Projector",
+    description: "Using occurrence data, geographical information to infer species and speciation/area relationships.",
+    keywords:    ["Phylogenetics", "Software"],
+    area:        "Biology",
+    highlighted: true
+  },
+  {
+    id:          "p2",
+    name:        "The Animal Culture Database",
+    description: "An account of the diversty of socially transmitted behaviors in animals.",
+    keywords:    ["Conservation", "Database"],
+    area:        "Cultural evolution",
+    highlighted: true
+  },
+  {
+    id:          "p3",
+    name:        "Sister pairs comparisons:",
+    description: "Examining how recent climate-related extinctions differ between closely related species.",
+    keywords:    ["Phylogenetics", "Climate change"],
+    area:        "Biology",
+    highlighted: false
+  },
+  {
+    id:          "p4",
+    name:        "Phyca software toolkit",
+    description: "Universal orthologs infer deep phylogenies and improve genome quality assessments",
+    keywords:    ["Genomics", "Software", "phylogenetics"],
+    area:        "Biology",
+    highlighted: false
+  },
+  {
+    id:          "p5",
+    name:        "Lab Operations",
+    description: "How lab members collaborate.",
+    keywords:    ["Admin"],
+    area:        "Admin",
+    highlighted: true
+  },
+  {
+    id:          "p6",
+    name:        "Green space extractor",
+    description: "Open-source automatic extraction of Urban Green Spaceto examine green space access.",
+    keywords:    ["Remote sensing", "Simulations"],
+    area:        "GIS",
+    highlighted: false
+  },
+  {
+    id:          "p7",
+    name:        "Bayesian Additive Regression Models",
+    description: "A new machine learning set of models that generalize in a broad range of datasets.",
+    keywords:    ["Regressions", "Applied Mathematics"],
+    area:        "Machine learning",
+    highlighted: false
+  },
+  {
+    id:          "p8",
+    name:        "NatGeo grant: Teaching Phylogenetics and Data Science in Colombia",
+    description: "Deploying courses in Spanish to teach data science and phylogenetics in Colombian public universities.",
+    keywords:    ["Education", "Phylogenetics", "Data science"],
+    area:        "Grant",
+    highlighted: false
+  },
+  {
+    id:          "p9",
+    name:        "Machine learning and Biology review",
+    description: "Lab members met and wrote a recently published review on recent uses of ML in biological research.",
+    keywords:    ["Machine learning", "Biology"],
+    area:        "Review",
+    highlighted: false
+  },
+  {
+    id:          "p10",
+    name:        "Drivers of co-extinctions",
+    description: "Using recent climatic extinctions as case studies to understand why some species and not others experience extinction in a community.",
+    keywords:    ["Climate change", "Extinctions"],
+    area:        "Biology",
+    highlighted: false
+  },
+  /*
+  TEMPLATE: copy & uncomment to add a project 
+  {
+    id:          "p5",
+    name:        "Project Placeholder 5",
+    description: "Description here.",
+    keywords:    ["Topic X"],
+    area:        "Field X",
+    highlighted: false
+  },
+  */
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   END OF DATA
+═══════════════════════════════════════════════════════════════ */
+
+/* AREA COLOUR MAP (auto-assigned) ─────*/
+const AREA_PALETTE = [
+  "#7aab85","#5b8fa8","#b07a5a","#8a7ab0",
+  "#a89f5a","#a86a7a","#5a8fa8","#7aa8ab"
+];
+const _areaMap = {}; let _areaIdx = 0;
+function areaColor(a) {
+  if (!a) return "#888";
+  if (!_areaMap[a]) _areaMap[a] = AREA_PALETTE[_areaIdx++ % AREA_PALETTE.length];
+  return _areaMap[a];
+}
+
+/* DERIVED ──────*/
+const labMembersCount = MEMBERS.filter(m => !m.role.toLowerCase().includes('alumni')).length;
+const graduatesCount  = MEMBERS.filter(m =>  m.role.toLowerCase().includes('alumni')).length;
+const activeProjects  = PROJECTS.length;
+const ALL_AREAS = [...new Set([
+  ...MEMBERS.map(m => m.area),
+  ...PROJECTS.map(p => p.area)
+])].filter(Boolean);
+ALL_AREAS.forEach(a => areaColor(a)); // warm colour map in order
+
+/* HELPERS */
+function initials(name) {
+  const parts = name.replace(/^(Dr\.|Prof\.)\s*/,'').trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+}
+
+/* NAVIGATION */
+function showSection(id, btn) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'network' && !window._netDrawn)
+    requestAnimationFrame(() => setTimeout(drawNetwork, 60));
+}
+
+/* OVERVIEW */
+function renderOverview() {
+  const stats = [
+    { n: labMembersCount, label: "Lab Members" },
+    { n: graduatesCount,  label: "Graduates"   },
+    { n: activeProjects,  label: "Projects"    },
+  ];
+  document.getElementById('stats-cluster').innerHTML = stats.map((s,i) => `
+    <div class="stat-block" style="animation-delay:${0.05 + i * 0.07}s">
+      <div class="stat-n">${s.n}<span>.</span></div>
+      <div class="stat-label">${s.label}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('overview-areas').innerHTML = ALL_AREAS.map(a =>
+    `<div class="area-chip"
+       style="background:${areaColor(a)}22;border-color:${areaColor(a)}55;color:${areaColor(a)}">
+       ${a}
+     </div>`
+  ).join('');
+}
+
+/* PEOPLE */
+let activePeopleFilter = 'All';
+function renderPeople(filter) {
+  activePeopleFilter = filter || activePeopleFilter;
+  const areas = ['All', ...ALL_AREAS];
+
+  document.getElementById('people-filters').innerHTML = areas.map(a => {
+    const isActive = activePeopleFilter === a;
+    const style = (a !== 'All' && isActive)
+      ? `background:${areaColor(a)};border-color:${areaColor(a)};color:white` : '';
+    return `<button class="filter-chip ${isActive ? 'active' : ''}"
+      onclick="renderPeople('${a}')" style="${style}">${a}</button>`;
+  }).join('');
+
+  const shown = activePeopleFilter === 'All'
+    ? MEMBERS
+    : MEMBERS.filter(m => m.area === activePeopleFilter);
+
+  document.getElementById('people-grid').innerHTML = shown.map((m, i) => {
+    const idx = MEMBERS.indexOf(m);
+    const photoHtml = m.photo
+      ? `<img src="${m.photo}" alt="${m.name}" loading="lazy"
+           onerror="this.parentElement.innerHTML='<div class=person-initials-bg>${initials(m.name)}</div>'">`
+      : `<div class="person-initials-bg">${initials(m.name)}</div>`;
+    const badge = m.highlighted
+      ? `<div style="position:absolute;top:0.6rem;right:0.6rem;background:${areaColor(m.area)};
+           color:white;font-size:0.6rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:20px;
+           letter-spacing:0.07em;text-transform:uppercase">★ Featured</div>` : '';
+    return `
+      <div class="person-card ${m.highlighted ? 'highlighted' : ''}"
+           style="animation-delay:${i * 0.04}s"
+           onclick="openPerson(${idx})">
+        <div class="person-photo-wrap">${photoHtml}${badge}</div>
+        <div class="area-stripe" style="background:${areaColor(m.area)}"></div>
+        <div class="person-body">
+          <div class="person-name-card">${m.name}</div>
+          <div class="person-role-card">${m.role}</div>
+          <div class="person-keywords">
+            ${m.keywords.slice(0,3).map(k => `<span class="kw-tag">${k}</span>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openPerson(idx) {
+  const m = MEMBERS[idx];
+  const projs = PROJECTS.filter(p => m.projects.includes(p.id));
+  const photoHtml = m.photo
+    ? `<img src="${m.photo}" alt="${m.name}"
+         onerror="this.parentElement.innerHTML='<div class=modal-photo-initials>${initials(m.name)}</div>'">`
+    : `<div class="modal-photo-initials">${initials(m.name)}</div>`;
+
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModalDirect()">✕</button>
+        <div class="modal-header">
+          <div class="modal-photo">${photoHtml}</div>
+          <div>
+            <div class="modal-name">${m.name}</div>
+            <div class="modal-role">${m.role}</div>
+            <span class="modal-area-badge" style="background:${areaColor(m.area)}">${m.area}</span>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="modal-section-label">Keywords</div>
+          <div class="modal-kws">${m.keywords.map(k=>`<span class="modal-kw">${k}</span>`).join('')}</div>
+          <div class="modal-section-label">Projects (${projs.length})</div>
+          <div class="modal-project-list">
+            ${projs.length
+              ? projs.map(p => `
+                  <div class="modal-project-item">
+                    <div class="modal-project-name">
+                      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;
+                        background:${areaColor(p.area)};margin-right:0.5rem;vertical-align:middle"></span>
+                      ${p.name}
+                    </div>
+                    <div class="modal-project-desc">${p.description}</div>
+                  </div>`).join('')
+              : '<div style="color:var(--ink-light);font-size:0.83rem">No projects assigned yet.</div>'}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e) { if (e.target.id === 'modal-overlay') closeModalDirect(); }
+function closeModalDirect() {
+  document.getElementById('modal-root').innerHTML = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+
+/* PROJECTS */
+let activeProjFilter = 'All';
+function renderProjects(filter) {
+  activeProjFilter = filter || activeProjFilter;
+  const areas = ['All', ...ALL_AREAS.filter(a => PROJECTS.some(p => p.area === a))];
+
+  document.getElementById('proj-filters').innerHTML = areas.map(a => {
+    const isActive = activeProjFilter === a;
+    const style = (a !== 'All' && isActive)
+      ? `background:${areaColor(a)};border-color:${areaColor(a)};color:white` : '';
+    return `<button class="filter-chip ${isActive ? 'active' : ''}"
+      onclick="renderProjects('${a}')" style="${style}">${a}</button>`;
+  }).join('');
+
+  const shown = activeProjFilter === 'All'
+    ? PROJECTS
+    : PROJECTS.filter(p => p.area === activeProjFilter);
+
+  document.getElementById('projects-grid').innerHTML = shown.map((p, i) => {
+    const members = MEMBERS.filter(m => m.projects.includes(p.id));
+    const hlBadge = p.highlighted
+      ? `<span style="float:right;font-size:0.65rem;font-weight:700;color:${areaColor(p.area)};
+           background:${areaColor(p.area)}22;padding:0.22rem 0.6rem;border-radius:20px;
+           letter-spacing:0.07em;text-transform:uppercase">★ Highlighted</span>` : '';
+    return `
+      <div class="proj-card ${p.highlighted ? 'highlighted-proj' : ''}" style="animation-delay:${i * 0.05}s">
+        <div class="proj-card-accent" style="background:${areaColor(p.area)}"></div>
+        <div class="proj-card-body">
+          <span class="proj-area-tag" style="background:${areaColor(p.area)}">${p.area}</span>
+          ${hlBadge}
+          <div class="proj-name">${p.name}</div>
+          <div class="proj-desc">${p.description}</div>
+          <div class="proj-footer">
+            ${p.keywords.map(k => `<span class="proj-kw">${k}</span>`).join('')}
+          </div>
+          ${members.length ? `
+          <div class="proj-members-row">
+            <div class="proj-member-avatars">
+              ${members.slice(0,6).map(m => `
+                <div class="proj-member-avatar" title="${m.name}">
+                  ${m.photo
+                    ? `<img src="${m.photo}" alt="${m.name}"
+                         onerror="this.parentElement.innerHTML='${initials(m.name)}'">`
+                    : initials(m.name)}
+                </div>`).join('')}
+            </div>
+            <span class="proj-member-count">${members.length} researcher${members.length !== 1 ? 's' : ''}</span>
+          </div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* D3 FORCE NETWORK */
+let _sim, _svg_zoom;
+
+function drawNetwork() {
+  window._netDrawn = true;
+  const svgEl = document.getElementById('network-svg');
+  const W = svgEl.clientWidth;
+  const H = svgEl.clientHeight;
+
+  const nodes = [
+    ...MEMBERS.map((m, i) => ({
+      id: 'M' + i,
+      label: m.name.replace(/^(Dr\.|Prof\.)\s*/, '').split(/\s+/)[0],
+      full: m.name, sub: m.role,
+      area: m.area, group: 'person'
+    })),
+    ...PROJECTS.map(p => ({
+      id: p.id, label: p.name,
+      full: p.name, sub: p.area,
+      area: p.area, group: 'project'
+    }))
+  ];
+
+  const links = [];
+  MEMBERS.forEach((m, i) =>
+    m.projects.forEach(pid => links.push({ source: 'M' + i, target: pid }))
+  );
+
+  const svg = d3.select('#network-svg');
+  svg.selectAll('*').remove();
+  const g = svg.append('g');
+
+  _svg_zoom = d3.zoom().scaleExtent([0.15, 5])
+    .on('zoom', e => g.attr('transform', e.transform));
+  svg.call(_svg_zoom);
+
+  /* Radial gradients */
+  const defs = svg.append('defs');
+  nodes.filter(n => n.group === 'person').forEach(n => {
+    const c = areaColor(n.area);
+    const gr = defs.append('radialGradient')
+      .attr('id', 'ng' + n.id).attr('cx', '40%').attr('cy', '35%').attr('r', '65%');
+    gr.append('stop').attr('offset', '0%').attr('stop-color', lighten(c, 0.5));
+    gr.append('stop').attr('offset', '100%').attr('stop-color', c);
+  });
+
+  /* FORCES — compact & cohesive 
+     Short link distance + x/y centering keeps the graph tight
+     so no cluster drifts to the edge of the canvas.           */
+  const sim = _sim = d3.forceSimulation(nodes)
+    .force('link',      d3.forceLink(links).id(d => d.id).distance(65).strength(0.9))
+    .force('charge',    d3.forceManyBody().strength(-140))
+    .force('center',    d3.forceCenter(W / 2, H / 2).strength(0.1))
+    .force('x',         d3.forceX(W / 2).strength(0.06))
+    .force('y',         d3.forceY(H / 2).strength(0.06))
+    .force('collision', d3.forceCollide(d => d.group === 'project' ? 32 : 20).strength(0.85))
+    .velocityDecay(0.38)
+    .alphaDecay(0.022);
+
+  /* Links */
+  const link = g.append('g').selectAll('line').data(links).join('line')
+    .attr('stroke', d => {
+      const tgt = nodes.find(n => n.id === (d.target.id || d.target));
+      return areaColor(tgt ? tgt.area : '');
+    })
+    .attr('stroke-width', 1.6)
+    .attr('stroke-opacity', 0.4);
+
+  const tooltip = document.getElementById('tooltip');
+
+  /* Node groups */
+  const node = g.append('g').selectAll('g').data(nodes).join('g')
+    .attr('cursor', 'grab')
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
+    .on('mouseover', (e, d) => {
+      tooltip.innerHTML = `<strong>${d.full}</strong><span>${d.sub}</span>`;
+      tooltip.classList.add('visible');
+    })
+    .on('mousemove', e => {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top  = (e.clientY - 12) + 'px';
+    })
+    .on('mouseout', () => tooltip.classList.remove('visible'));
+
+  /* Project nodes */
+  node.filter(d => d.group === 'project').append('rect')
+    .attr('rx', 10).attr('ry', 10)
+    .attr('x', -34).attr('y', -14).attr('width', 68).attr('height', 28)
+    .attr('fill',   d => areaColor(d.area) + '25')
+    .attr('stroke', d => areaColor(d.area))
+    .attr('stroke-width', 1.5);
+
+  node.filter(d => d.group === 'project').append('text')
+    .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
+    .attr('font-size', 7.5).attr('font-family', 'Figtree,sans-serif')
+    .attr('fill', d => areaColor(d.area)).attr('font-weight', 600)
+    .each(function(d) {
+      const words = d.label.split(' ');
+      const lines = []; let line = '';
+      words.forEach(w => {
+        if ((line + w).length > 12 && line) { lines.push(line.trim()); line = w + ' '; }
+        else line += w + ' ';
+      });
+      lines.push(line.trim());
+      const el = d3.select(this); const start = -(lines.length - 1) * 5;
+      lines.forEach((l, i) => el.append('tspan').attr('x', 0).attr('dy', i === 0 ? start + 'px' : '10px').text(l));
+    });
+
+  /* Person nodes */
+  node.filter(d => d.group === 'person').append('circle')
+    .attr('r', 17)
+    .attr('fill', d => `url(#ng${d.id})`)
+    .attr('stroke', '#fff').attr('stroke-width', 2);
+
+  node.filter(d => d.group === 'person').append('text')
+    .attr('text-anchor', 'middle').attr('dy', '0.35em')
+    .attr('font-size', 7.5).attr('font-family', 'Fraunces,serif')
+    .attr('font-weight', 600).attr('fill', '#fff')
+    .text(d => initials(d.full));
+
+  sim.on('tick', () => {
+    link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+
+  /* Legend */
+  document.getElementById('area-legend').innerHTML =
+    ALL_AREAS.map(a => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${areaColor(a)}"></div>${a}
+      </div>`).join('') +
+    `<div class="legend-item" style="margin-left:auto;font-size:0.68rem;opacity:0.5">
+       ● person &nbsp;⬜ project
+     </div>`;
+}
+
+function resetZoom() {
+  d3.select('#network-svg').transition().duration(500)
+    .call(_svg_zoom.transform, d3.zoomIdentity);
+}
+
+function lighten(hex, amt) {
+  let r = parseInt(hex.slice(1,3), 16);
+  let g = parseInt(hex.slice(3,5), 16);
+  let b = parseInt(hex.slice(5,7), 16);
+  return `rgb(${Math.min(255,Math.round(r+(255-r)*amt))},${Math.min(255,Math.round(g+(255-g)*amt))},${Math.min(255,Math.round(b+(255-b)*amt))})`;
+}
+
+/* INIT */
+renderOverview();
+renderPeople();
+renderProjects();
+</script>
+```

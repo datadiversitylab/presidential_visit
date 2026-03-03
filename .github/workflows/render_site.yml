@@ -1,0 +1,33 @@
+name: Render quarto site
+
+on:
+  push:
+    paths:
+      - 'lab-showcase.qmd'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render lab-showcase.qmd
+        run: quarto render lab-showcase.qmd
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .          # folder where the html was rendered
+          publish_branch: gh-pages

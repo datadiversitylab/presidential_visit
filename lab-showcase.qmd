@@ -343,7 +343,7 @@ section.active { display: block; animation: sectionIn 0.45s cubic-bezier(.4,0,.2
     <div class="overview-intro">
       <div>
         <div class="overview-intro-title">"Data science,<br>and intersectionalities"</div>
-        <p>We use data science to examine questions in evolutionary biology, ecology, climate change, and related fields. We invite collaboration with students and researchers passionate about leveraging large datasets to answer questions in biology and beyond.</p>
+        <p>We use data science to examine questions in evolutionary biology, ecology, climate change, and related fields. We invite collaboration with students and researchers interested in leveraging large datasets to answer questions in biology and beyond.</p>
       </div>
       <div class="overview-intro-areas" id="overview-areas"></div>
     </div>

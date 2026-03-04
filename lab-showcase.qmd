@@ -440,21 +440,21 @@ const MEMBERS = [
   ─*/
   
   {
-    name:        "Kennedy Gezella",
-    role:        "Undergraduate student",
-    photo:       "https://datadiversitylab.github.io/assets/images/our-team/kennedy07.jpg",
-    projects:    ["p5"],
-    keywords:    ["Admin support"],
-    area:        "Admin",
-    highlighted: true
-  },
-  {
     name:        "Kristen Martinet",
     role:        "Postdoctoral researcher",
     photo:       "https://datadiversitylab.github.io/assets/images/our-team/kristen05.jpg",
     projects:    ["p1", "p9", "p10"],
     keywords:    ["Phylogenetics", "Data science"],
     area:        "Biology",
+    highlighted: true
+  },
+  {
+    name:        "Ian Estacio",
+    role:        "Postdoctoral researcher",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/ian08hs2.jpg",
+    projects:    ["p6", "p10"],
+    keywords:    ["Simulations", "GIS"],
+    area:        "Remote sensing",
     highlighted: true
   },
   {
@@ -467,6 +467,51 @@ const MEMBERS = [
     highlighted: true
   },
   {
+    name:        "Michael Nafis",
+    role:        "PhD Student",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/michael00hs.jpg",
+    projects:    ["p4", "p9", "p10"],
+    keywords:    ["Plant sciences", "Genomics"],
+    area:        "Biology",
+    highlighted: true
+  },
+  {
+    name:        "Danielle Van Boxel",
+    role:        "Alumni",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/danielle-van-boxel.png",
+    projects:    ["p7", "p9"],
+    keywords:    ["Machine learning", "Supervised learning"],
+    area:        "Applied Mathematics",
+    highlighted: true
+  },
+  {
+    name:        "Natalia Ramírez",
+    role:        "NatGeo - Collaborator",
+    photo:       "https://datadiversitylab.github.io/macrodata/assets/img/Natalia.jpg",
+    projects:    ["p8"],
+    keywords:    ["NatGeo", "Colombia"],
+    area:        "NatGeo",
+    highlighted: true
+  },
+  {
+    name:        "Jhan Carlos Salazar",
+    role:        "Collaborator",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/jhan-c-salazar.png",
+    projects:    ["p9", "p10"],
+    keywords:    ["Climate change", "Phylogenetics"],
+    area:        "Biology",
+    highlighted: true
+  },
+  {
+    name:        "Kennedy Gezella",
+    role:        "Undergraduate student",
+    photo:       "https://datadiversitylab.github.io/assets/images/our-team/kennedy07.jpg",
+    projects:    ["p5"],
+    keywords:    ["Admin support"],
+    area:        "Admin",
+    highlighted: false
+  },
+  {
     name:        "Delaney Scott-Martin",
     role:        "Undergraduate student",
     photo:       "https://datadiversitylab.github.io/assets/images/our-team/delaney04.jpg",
@@ -476,33 +521,14 @@ const MEMBERS = [
     highlighted: false
   },
   {
-    name:        "Michael Nafis",
-    role:        "PhD Student",
-    photo:       "https://datadiversitylab.github.io/assets/images/our-team/michael00hs.jpg",
-    projects:    ["p4", "p9", "p10"],
-    keywords:    ["Plant sciences", "Genomics"],
-    area:        "Biology",
+    name:        "Katherine Perez",
+    role:        "Collaborator",
+    photo:       "https://datadiversitylab.github.io/macrodata/assets/img/Kathe.jpg",
+    projects:    ["p8"],
+    keywords:    ["NatGeo", "Colombia"],
+    area:        "NatGeo",
     highlighted: false
   },
-  {
-    name:        "Ian Estacio",
-    role:        "Postdoctoral researcher",
-    photo:       "https://datadiversitylab.github.io/assets/images/our-team/ian08hs2.jpg",
-    projects:    ["p6", "p10"],
-    keywords:    ["Simulations", "GIS"],
-    area:        "Remote sensing",
-    highlighted: false
-  },
-  {
-    name:        "Danielle Van Boxel",
-    role:        "Alumni",
-    photo:       "https://datadiversitylab.github.io/assets/images/our-team/danielle-van-boxel.png",
-    projects:    ["p7", "p9"],
-    keywords:    ["Machine learning", "Supervised learning"],
-    area:        "Applied Mathematics",
-    highlighted: false
-  },
-
 ];
 
 /* ┌┐
@@ -510,38 +536,7 @@ const MEMBERS = [
    │  id | name | description | keywords | area | highlighted │
    └┘ */
 const PROJECTS = [
-  {
-    id:          "p1",
-    name:        "SSARP: Species and Speciation Area Projector",
-    description: "Using occurrence data, geographical information to infer species and speciation/area relationships.",
-    keywords:    ["Phylogenetics", "Software"],
-    area:        "Biology",
-    highlighted: true
-  },
-  {
-    id:          "p2",
-    name:        "The Animal Culture Database",
-    description: "An account of the diversty of socially transmitted behaviors in animals.",
-    keywords:    ["Conservation", "Database"],
-    area:        "Cultural evolution",
-    highlighted: true
-  },
-  {
-    id:          "p3",
-    name:        "Sister pairs comparisons:",
-    description: "Examining how recent climate-related extinctions differ between closely related species.",
-    keywords:    ["Phylogenetics", "Climate change"],
-    area:        "Biology",
-    highlighted: false
-  },
-  {
-    id:          "p4",
-    name:        "Phyca software toolkit",
-    description: "Universal orthologs infer deep phylogenies and improve genome quality assessments",
-    keywords:    ["Genomics", "Software", "phylogenetics"],
-    area:        "Biology",
-    highlighted: false
-  },
+  
   {
     id:          "p5",
     name:        "Lab Operations",
@@ -551,12 +546,36 @@ const PROJECTS = [
     highlighted: true
   },
   {
+    id:          "p1",
+    name:        "SSARP: Species and Speciation Area Projector",
+    description: "Using occurrence data, geographical information to infer species and speciation/area relationships.",
+    keywords:    ["Phylogenetics", "Software"],
+    area:        "Biology",
+    highlighted: true
+  },
+  {
     id:          "p6",
     name:        "Green space extractor",
     description: "Open-source automatic extraction of Urban Green Spaceto examine green space access.",
-    keywords:    ["Remote sensing", "Simulations"],
+    keywords:    ["Remote Sensing", "Simulations"],
     area:        "GIS",
-    highlighted: false
+    highlighted: true
+  },
+  {
+    id:          "p2",
+    name:        "The Animal Culture Database",
+    description: "An account of the diversty of socially transmitted behaviors in animals.",
+    keywords:    ["Conservation", "Database"],
+    area:        "Cultural Evolution",
+    highlighted: true
+  },
+  {
+    id:          "p4",
+    name:        "Phyca software toolkit",
+    description: "Universal orthologs infer deep phylogenies and improve genome quality assessments",
+    keywords:    ["Genomics", "Software", "Phylogenetics"],
+    area:        "Biology",
+    highlighted: true
   },
   {
     id:          "p7",
@@ -570,8 +589,24 @@ const PROJECTS = [
     id:          "p8",
     name:        "NatGeo grant: Teaching Phylogenetics and Data Science in Colombia",
     description: "Deploying courses in Spanish to teach data science and phylogenetics in Colombian public universities.",
-    keywords:    ["Education", "Phylogenetics", "Data science"],
+    keywords:    ["Education", "Phylogenetics", "Data Science"],
     area:        "Grant",
+    highlighted: true
+  },
+  {
+    id:          "p11",
+    name:        "UA's Big Idea challenge: Biosphere2",
+    description: "Designing and deploying a Digital Twin of Biosphere 2.",
+    keywords:    ["Data Science", "Climate Change"],
+    area:        "Biology",
+    highlighted: true
+  },
+  {
+    id:          "p3",
+    name:        "Sister pairs comparisons:",
+    description: "Examining how recent climate-related extinctions differ between closely related species.",
+    keywords:    ["Phylogenetics", "Climate Change"],
+    area:        "Biology",
     highlighted: false
   },
   {
@@ -586,7 +621,7 @@ const PROJECTS = [
     id:          "p10",
     name:        "Drivers of co-extinctions",
     description: "Using recent climatic extinctions as case studies to understand why some species and not others experience extinction in a community.",
-    keywords:    ["Climate change", "Extinctions"],
+    keywords:    ["Climate Change", "Extinctions"],
     area:        "Biology",
     highlighted: false
   },
